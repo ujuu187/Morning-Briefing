@@ -1,0 +1,40 @@
+{
+  "profile": {
+    "current_role": "Director, Visa Consulting & Analytics",
+    "background": ["BCG", "Oliver Wyman", "Visa C&A"],
+    "career_goal_near": "Series B/C 스타트업 C-level (CSO, CPO, Chief Strategy Officer 등)",
+    "career_goal_long": "Venture Capitalist (Responsible AI/Tech 중심)",
+    "domain_focus": "Responsible AI / Ethical Tech / AI for Good"
+  },
+  "curation_priorities": {
+    "must_cover": [
+      "AI Foundation Model 동향 (LLM, 멀티모달, 에이전트)",
+      "Responsible AI / AI 규제 / 윤리 이슈",
+      "Series B/C 스타트업 투자·성장 사례 (글로벌·APAC·한국)",
+      "Payment / Fintech 업계 전략 변화 (Visa 관련 경쟁사 포함)",
+      "VC 트렌드 및 투자 테마 변화"
+    ],
+    "high_priority_sections": [
+      "ai-foundation", "startup-global", "startup-apac", "startup-kr", "fintech", "payment"
+    ],
+    "lower_priority_sections": ["ai-sec", "world-econ", "kr-econ"],
+    "boost_keywords": [
+      "responsible AI", "AI governance", "AI regulation", "ethical AI",
+      "Series B", "Series C", "growth stage", "C-level", "strategic partnership",
+      "Visa", "Mastercard", "payment network", "cross-border",
+      "APAC", "Korea", "Southeast Asia",
+      "consulting to startup", "operator", "venture"
+    ],
+    "deprioritize_keywords": ["코스피 단순 등락", "단기 주가 예측", "채굴", "밈코인"]
+  },
+  "summary_style": {
+    "language": "한국어",
+    "tone": "전략 컨설턴트 수준의 간결하고 인사이트 중심",
+    "perspective": "해당 뉴스가 커리어 전환(스타트업 C-level → VC)과 어떤 관련이 있는지 한 줄 코멘트 포함",
+    "bullet_style": "단순 사실 나열보다 '왜 중요한가', '무엇을 의미하는가' 중심으로 작성"
+  },
+  "custom_prompts": {
+    "importance_override": "Responsible AI, AI 규제, Series B/C 이상 스타트업 투자 뉴스는 importance=high로 설정",
+    "career_lens": "각 기사 요약 마지막 bullet에 '→ 커리어 관점: [한 줄 인사이트]' 형식으로 커리어 연관성 추가"
+  }
+}

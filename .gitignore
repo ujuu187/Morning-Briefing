@@ -1,0 +1,10 @@
+*.db
+*.pyc
+__pycache__/
+.env
+run_collector.bat
+collector.py.txt
+indicators.py.txt
+api.py.txt
+frontend/node_modules/
+frontend/.next/
