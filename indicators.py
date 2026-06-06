@@ -5,13 +5,26 @@ Yahoo Finance API로 실시간 지표 수집
 """
 
 import os
-import psycopg2
+import pg8000
 import json
 import urllib.request
 import urllib.parse
 from datetime import date
+from urllib.parse import urlparse
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
+
+
+def get_connection():
+    url = urlparse(DATABASE_URL)
+    return pg8000.connect(
+        host=url.hostname,
+        user=url.username,
+        password=url.password,
+        port=url.port or 5432,
+        database=url.path.lstrip('/'),
+        ssl_context=True,
+    )
 
 INDICATORS = {
     "kospi":    {"symbol": "^KS11",    "name": "코스피",      "group": "증시",    "unit": "pt"},
@@ -30,7 +43,7 @@ INDICATORS = {
 
 
 def init_indicator_db():
-    conn = psycopg2.connect(DATABASE_URL)
+    conn = get_connection()
     with conn.cursor() as cur:
         cur.execute("""
             CREATE TABLE IF NOT EXISTS indicators (

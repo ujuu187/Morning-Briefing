@@ -7,14 +7,27 @@ RSS 수집 -> Claude API 요약 -> PostgreSQL 저장
 import os
 import feedparser
 import anthropic
-import psycopg2
+import pg8000
 import json
 from datetime import datetime, date
 from dataclasses import dataclass
 from pathlib import Path
+from urllib.parse import urlparse
 
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
+
+
+def get_connection():
+    url = urlparse(DATABASE_URL)
+    return pg8000.connect(
+        host=url.hostname,
+        user=url.username,
+        password=url.password,
+        port=url.port or 5432,
+        database=url.path.lstrip('/'),
+        ssl_context=True,
+    )
 
 RSS_SOURCES = {
     "ai-foundation": [
@@ -94,7 +107,7 @@ def load_persona(path: str = "persona.json") -> dict:
 
 
 def init_db():
-    conn = psycopg2.connect(DATABASE_URL)
+    conn = get_connection()
     with conn.cursor() as cur:
         cur.execute("""
             CREATE TABLE IF NOT EXISTS articles (
