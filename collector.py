@@ -226,7 +226,9 @@ def summarize_with_claude(articles: list, section_name: str) -> list:
             max_tokens=1500,
             messages=[{"role": "user", "content": prompt}]
         )
-        result = json.loads(response.content[0].text)
+        raw_text = response.content[0].text if response.content else ""
+        print(f"  [Claude 응답 미리보기] {section_name}: {raw_text[:100]}")
+        result = json.loads(raw_text)
         summarized = []
         for item in result["articles"]:
             idx = item["index"] - 1
