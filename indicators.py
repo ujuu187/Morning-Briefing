@@ -5,24 +5,28 @@ Yahoo Finance API로 실시간 지표 수집
 """
 
 import os
+import re
 import pg8000
 import json
 import urllib.request
 import urllib.parse
 from datetime import date
-from urllib.parse import urlparse
+from urllib.parse import unquote
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
 
 
 def get_connection():
-    url = urlparse(DATABASE_URL)
+    m = re.match(r'postgresql(?:\+\w+)?://([^:]+):(.+)@([^:/]+):?(\d+)?/(.+)$', DATABASE_URL)
+    if not m:
+        raise ValueError("DATABASE_URL 파싱 실패")
+    user, password, host, port, dbname = m.groups()
     return pg8000.connect(
-        host=url.hostname,
-        user=url.username,
-        password=url.password,
-        port=url.port or 5432,
-        database=url.path.lstrip('/'),
+        host=host,
+        user=user,
+        password=unquote(password),
+        port=int(port or 5432),
+        database=dbname,
         ssl_context=True,
     )
 

@@ -12,20 +12,24 @@ import json
 from datetime import datetime, date
 from dataclasses import dataclass
 from pathlib import Path
-from urllib.parse import urlparse
+import re
+from urllib.parse import unquote
 
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
 
 
 def get_connection():
-    url = urlparse(DATABASE_URL)
+    m = re.match(r'postgresql(?:\+\w+)?://([^:]+):(.+)@([^:/]+):?(\d+)?/(.+)$', DATABASE_URL)
+    if not m:
+        raise ValueError("DATABASE_URL 파싱 실패")
+    user, password, host, port, dbname = m.groups()
     return pg8000.connect(
-        host=url.hostname,
-        user=url.username,
-        password=url.password,
-        port=url.port or 5432,
-        database=url.path.lstrip('/'),
+        host=host,
+        user=user,
+        password=unquote(password),
+        port=int(port or 5432),
+        database=dbname,
         ssl_context=True,
     )
 
