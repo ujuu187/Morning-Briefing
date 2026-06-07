@@ -247,7 +247,7 @@ def summarize_with_claude(articles: list, section_name: str) -> list:
                 ))
         return summarized
     except Exception as e:
-        print(f"  [Claude 오류] {section_name}: {e}")
+        print(f"  [Claude 오류] {section_name}: {type(e).__name__}: {e}")
         return []
 
 
