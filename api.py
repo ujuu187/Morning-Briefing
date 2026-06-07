@@ -5,8 +5,7 @@ Morning Briefing - API 서버
 
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
-from datetime import date
-from collector import init_db, get_briefing
+from collector import init_db, get_briefing, today_kst
 from indicators import init_indicator_db, get_indicators
 
 app = FastAPI(title="Morning Briefing API")
@@ -46,13 +45,13 @@ def indicators(target_date: str = Query(default=None)):
 @app.get("/dates")
 def available_dates():
     conn = init_db()
-    rows = conn.execute(
-        "SELECT DISTINCT date FROM articles ORDER BY date DESC LIMIT 30"
-    ).fetchall()
+    with conn.cursor() as cur:
+        cur.execute("SELECT DISTINCT date FROM articles ORDER BY date DESC LIMIT 30")
+        rows = cur.fetchall()
     conn.close()
     return {"dates": [r[0] for r in rows]}
 
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "today": str(date.today())}
+    return {"status": "ok", "today": today_kst()}

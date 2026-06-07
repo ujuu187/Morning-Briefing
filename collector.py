@@ -9,7 +9,8 @@ import feedparser
 import anthropic
 import pg8000
 import json
-from datetime import datetime, date
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from dataclasses import dataclass
 from pathlib import Path
 import re
@@ -35,7 +36,7 @@ def get_connection():
 
 RSS_SOURCES = {
     "ai-foundation": [
-        ("The Verge AI", "https://www.theverge.com/ai-artificial-intelligence/rss/index.xml"),
+        ("VentureBeat AI", "https://venturebeat.com/category/ai/feed/"),
         ("TechCrunch AI", "https://techcrunch.com/category/artificial-intelligence/feed/"),
     ],
     "world-econ": [
@@ -48,7 +49,7 @@ RSS_SOURCES = {
     ],
     "fintech": [
         ("CoinDesk", "https://www.coindesk.com/arc/outboundfeeds/rss/"),
-        ("Finextra", "https://www.finextra.com/rss/finextra-news.xml"),
+        ("Finextra", "https://www.finextra.com/rss/headlines.aspx"),
     ],
     "ai-sec": [
         ("The Hacker News", "https://feeds.feedburner.com/TheHackersNews"),
@@ -62,7 +63,6 @@ RSS_SOURCES = {
         ("Crunchbase News", "https://news.crunchbase.com/feed/"),
     ],
     "startup-apac": [
-        ("KrASIA", "https://kr.asia/feed"),
         ("e27", "https://e27.co/feed/"),
     ],
     "startup-kr": [
@@ -71,8 +71,7 @@ RSS_SOURCES = {
     ],
     "real-estate-kr": [
         ("한국경제 부동산", "https://www.hankyung.com/feed/realestate"),
-        ("매일경제 부동산", "https://www.mk.co.kr/rss/40000001/"),
-        ("연합뉴스 부동산", "https://www.yna.co.kr/rss/real-estate.xml"),
+        ("매일경제 부동산", "https://www.mk.co.kr/rss/50300009/"),
     ],
 }
 
@@ -91,6 +90,9 @@ SECTION_NAMES = {
 
 MAX_ARTICLES_PER_SECTION = 3
 
+# 다수 언론사가 기본 봇 User-Agent(403)와 클라우드 IP를 차단하므로 브라우저 UA로 요청
+RSS_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+
 
 @dataclass
 class Article:
@@ -103,6 +105,11 @@ class Article:
     bullets: list
     importance: str
     keywords: list
+
+
+def today_kst() -> str:
+    """수집은 KST 오전에 돌지만 서버는 UTC라 날짜가 하루 밀린다. KST 기준 날짜 사용."""
+    return str(datetime.now(ZoneInfo("Asia/Seoul")).date())
 
 
 def load_persona(path: str = "persona.json") -> dict:
@@ -140,7 +147,7 @@ def fetch_rss(section: str, feeds: list) -> list:
     articles = []
     for source_name, url in feeds:
         try:
-            feed = feedparser.parse(url)
+            feed = feedparser.parse(url, agent=RSS_USER_AGENT)
             for entry in feed.entries[:5]:
                 articles.append({
                     "section": section,
@@ -277,7 +284,7 @@ def save_articles(conn, articles: list, today: str):
 
 def get_briefing(conn, target_date: str = None) -> dict:
     if not target_date:
-        target_date = str(date.today())
+        target_date = today_kst()
     with conn.cursor() as cur:
         cur.execute("""
             SELECT section, title, url, source, published, summary, bullets, importance, keywords
@@ -301,7 +308,7 @@ def get_briefing(conn, target_date: str = None) -> dict:
 
 
 def main():
-    today = str(date.today())
+    today = today_kst()
     print(f"\nMorning Briefing 수집 시작 - {today}\n")
     conn = init_db()
     with conn.cursor() as cur:
