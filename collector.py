@@ -39,7 +39,8 @@ RSS_SOURCES = {
         ("TechCrunch AI", "https://techcrunch.com/category/artificial-intelligence/feed/"),
     ],
     "world-econ": [
-        ("Reuters Business", "https://feeds.reuters.com/reuters/businessNews"),
+        ("Bloomberg Economics", "https://feeds.bloomberg.com/economics/news.rss"),
+        ("FT World Economy", "https://www.ft.com/rss/home/uk"),
     ],
     "kr-econ": [
         ("연합뉴스 경제", "https://www.yna.co.kr/rss/economy.xml"),
@@ -61,7 +62,8 @@ RSS_SOURCES = {
         ("Crunchbase News", "https://news.crunchbase.com/feed/"),
     ],
     "startup-apac": [
-        ("Tech in Asia", "https://www.techinasia.com/feed"),
+        ("KrASIA", "https://kr.asia/feed"),
+        ("e27", "https://e27.co/feed/"),
     ],
     "startup-kr": [
         ("플래텀", "https://platum.kr/feed"),
@@ -70,7 +72,7 @@ RSS_SOURCES = {
     "real-estate-kr": [
         ("한국경제 부동산", "https://www.hankyung.com/feed/realestate"),
         ("매일경제 부동산", "https://www.mk.co.kr/rss/40000001/"),
-        ("조선일보 부동산", "https://www.chosun.com/arc/outboundfeeds/rss/category/real-estate/?outputType=xml"),
+        ("연합뉴스 부동산", "https://www.yna.co.kr/rss/real-estate.xml"),
     ],
 }
 
@@ -224,7 +226,7 @@ def summarize_with_claude(articles: list, section_name: str) -> list:
     try:
         response = client.messages.create(
             model="claude-haiku-4-5-20251001",
-            max_tokens=1500,
+            max_tokens=2500,
             messages=[{"role": "user", "content": prompt}]
         )
         raw_text = response.content[0].text if response.content else ""
