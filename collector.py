@@ -227,9 +227,12 @@ def summarize_with_claude(articles: list, section_name: str) -> list:
             max_tokens=1500,
             messages=[{"role": "user", "content": prompt}]
         )
-        print(f"  [Debug] stop={response.stop_reason}, blocks={len(response.content)}")
         raw_text = response.content[0].text if response.content else ""
-        print(f"  [Debug] text={repr(raw_text[:150])}")
+        if raw_text.startswith("```"):
+            raw_text = raw_text.split("```", 2)[1]
+            if raw_text.startswith("json"):
+                raw_text = raw_text[4:]
+            raw_text = raw_text.rsplit("```", 1)[0].strip()
         result = json.loads(raw_text)
         summarized = []
         for item in result["articles"]:
