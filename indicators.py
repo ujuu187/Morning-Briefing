@@ -10,10 +10,16 @@ import pg8000
 import json
 import urllib.request
 import urllib.parse
-from datetime import date
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from urllib.parse import unquote
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
+
+
+def today_kst() -> str:
+    """수집은 KST 오전에 돌지만 서버는 UTC라 날짜가 하루 밀린다. KST 기준 날짜 사용."""
+    return str(datetime.now(ZoneInfo("Asia/Seoul")).date())
 
 
 def get_connection():
@@ -96,7 +102,7 @@ def fetch_yahoo(symbol: str) -> dict:
 
 
 def fetch_all_indicators(conn):
-    today = str(date.today())
+    today = today_kst()
     print(f"\n경제 지표 수집 - {today}\n")
     saved = 0
     with conn.cursor() as cur:
@@ -136,7 +142,7 @@ def fetch_all_indicators(conn):
 
 def get_indicators(conn, target_date: str = None) -> dict:
     if not target_date:
-        target_date = str(date.today())
+        target_date = today_kst()
     with conn.cursor() as cur:
         cur.execute("""
             SELECT key, name, group_name, unit, value, prev_value, change_pct
