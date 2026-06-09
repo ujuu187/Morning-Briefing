@@ -141,9 +141,15 @@ def fetch_all_indicators(conn):
 
 
 def get_indicators(conn, target_date: str = None) -> dict:
-    if not target_date:
-        target_date = today_kst()
     with conn.cursor() as cur:
+        if not target_date:
+            # 수집이 지연돼 오늘 데이터가 없으면 가장 최근 날짜로 폴백
+            cur.execute(
+                "SELECT date FROM indicators WHERE date <= %s ORDER BY date DESC LIMIT 1",
+                (today_kst(),),
+            )
+            row = cur.fetchone()
+            target_date = row[0] if row else today_kst()
         cur.execute("""
             SELECT key, name, group_name, unit, value, prev_value, change_pct
             FROM indicators WHERE date = %s
