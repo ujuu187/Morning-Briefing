@@ -75,7 +75,11 @@ def collect(token: str = Query(default="")):
     cron-job.org엔 timeout 로그가 뜰 수 있으나, 실제 수집은 Railway가 완료한다."""
     if not COLLECT_SECRET or token != COLLECT_SECRET:
         raise HTTPException(status_code=403, detail="forbidden")
-    _run_collection()
+    try:
+        _run_collection()
+    except Exception as e:
+        import traceback
+        return {"status": "error", "error": f"{type(e).__name__}: {e}", "trace": traceback.format_exc()[-1500:]}
     return {"status": "done", "today": today_kst()}
 
 
