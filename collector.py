@@ -5,6 +5,8 @@ RSS 수집 -> Claude API 요약 -> PostgreSQL 저장
 """
 
 import os
+import time
+import calendar
 import feedparser
 import anthropic
 import pg8000
@@ -36,8 +38,8 @@ def get_connection():
 
 RSS_SOURCES = {
     "ai-foundation": [
-        ("VentureBeat AI", "https://venturebeat.com/category/ai/feed/"),
         ("TechCrunch AI", "https://techcrunch.com/category/artificial-intelligence/feed/"),
+        ("MIT Tech Review", "https://www.technologyreview.com/feed/"),
     ],
     "world-econ": [
         ("Bloomberg Economics", "https://feeds.bloomberg.com/economics/news.rss"),
@@ -89,6 +91,10 @@ SECTION_NAMES = {
 }
 
 MAX_ARTICLES_PER_SECTION = 3
+
+# 동결된 피드(예: VentureBeat가 1월 기사를 계속 반환)가 옛 기사를 섞지 않도록,
+# 발행일이 파싱되고 이 일수보다 오래된 기사는 제외. 날짜 파싱이 안 되면 통과(빈 섹션 방지).
+MAX_ARTICLE_AGE_DAYS = 7
 
 # 다수 언론사가 기본 봇 User-Agent(403)와 클라우드 IP를 차단하므로 브라우저 UA로 요청
 RSS_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
@@ -144,11 +150,15 @@ def init_db():
 
 
 def fetch_rss(section: str, feeds: list) -> list:
+    cutoff = time.time() - MAX_ARTICLE_AGE_DAYS * 86400
     articles = []
     for source_name, url in feeds:
         try:
             feed = feedparser.parse(url, agent=RSS_USER_AGENT)
             for entry in feed.entries[:5]:
+                pub_parsed = entry.get("published_parsed") or entry.get("updated_parsed")
+                if pub_parsed and calendar.timegm(pub_parsed) < cutoff:
+                    continue  # 동결된 피드의 오래된 기사 제외
                 articles.append({
                     "section": section,
                     "source": source_name,
